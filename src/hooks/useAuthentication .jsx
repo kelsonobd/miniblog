@@ -1,4 +1,4 @@
-import {db} from "../firebase/config";
+import { db } from "../firebase/config";
 
 import {
   getAuth,
@@ -18,7 +18,7 @@ export const useAuthentication = () => {
   // deal with memory leak
   const [cancelled, setCancelled] = useState(false);
 
-  const auth = getAuth();
+ const auth = getAuth(); 
 
   function checkIfCancelled() {
     if (cancelled) {
@@ -26,8 +26,7 @@ export const useAuthentication = () => {
     }
   }
 
-
-//register
+  //register
   const createUser = async (data) => {
     checkIfCancelled();
 
@@ -52,31 +51,55 @@ export const useAuthentication = () => {
       console.log(error.message);
       console.log(typeof error.message);
 
-      let systemErrorMessage
+      let systemErrorMessage;
 
-      if(error.message.includes("Password")){
-        systemErrorMessage = "A senha precisa conter pelo menos 6 caracteres!"
-      }else if (error.message.includes("email-already")){
-        systemErrorMessage = "E-mail já cadastrado."
-      }else {
-        systemErrorMessage = "Ocorreu um erro, por favor tente mais tarde."
+      if (error.message.includes("Password")) {
+        systemErrorMessage = "A senha precisa conter pelo menos 6 caracteres!";
+      } else if (error.message.includes("email-already")) {
+        systemErrorMessage = "E-mail já cadastrado.";
+      } else {
+        systemErrorMessage = "Ocorreu um erro, por favor tente mais tarde.";
       }
 
       setLoading(false);
-      setError(systemErrorMessage)
+      setError(systemErrorMessage);
     }
   };
 
   //logout
-const logout = () => {
+  const logout = () => {
+    checkIfCancelled();
 
-  checkIfCancelled();
+    signOut(auth);
+  };
 
-  signOut(auth)
-}
+  //login- sign in
+  const login = async (data) => {
+    checkIfCancelled();
 
+    setLoading(true);
+    setError(false);
 
+    try {
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      console.log(data.email, error);
+      setLoading(false);
+    } catch (error) {
+      let systemErrorMessage;
 
+      if (error.message.includes("auth/user-not-found")) {
+        systemErrorMessage = "Usuário não encontrado.";
+      } else if (error.message.includes("wrong-password")) {
+        systemErrorMessage = "Senha incorreta";
+      } else {
+        systemErrorMessage = "Ocorreu um erro, por favor tente mais tarde!";
+      }
+      console.log(systemErrorMessage);
+
+      setError(systemErrorMessage);
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     return () => setCancelled(true);
   }, []);
@@ -87,5 +110,6 @@ const logout = () => {
     error,
     loading,
     logout,
+    login,
   };
 };
